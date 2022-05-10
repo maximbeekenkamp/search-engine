@@ -1,5 +1,5 @@
 Search Project:
-Maxim Beekenkamp and Kristophe Yen
+Maxim Beekenkamp
 
 We have zero known bugs.
 
