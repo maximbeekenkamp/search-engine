@@ -7,12 +7,12 @@ import sys
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 
+
 class query():
 
     STOP_WORDS = set(stopwords.words('english'))
     token_regex = r"\[\[[^\[]+?\]\]|[a-zA-Z0-9]+'[a-zA-Z0-9]+|[a-zA-Z0-9]+"
     stemmer = PorterStemmer()
-
 
     def __init__(self, bool, titles, docs, words, type_in):
         """
@@ -32,13 +32,13 @@ class query():
         This function gets called whenever the query class get initialised. So inside 
         are all the function calls required to output the print statements to display
         the top ten (if possible) results.
-        """        
+        """
         self.quer_id_to_titles = {}
         self.quer_pagerank = {}
         self.quer_word_to_rel = {}
         self.word_sum = {}
         self.page_values = {}
-        
+
         io.read_title_file(titles, self.quer_id_to_titles)
         io.read_docs_file(docs, self.quer_pagerank)
         io.read_words_file(words, self.quer_word_to_rel)
@@ -58,7 +58,6 @@ class query():
         else:
             return self.score(self.parse(type_in))
 
-
     def parse(self, all_words):
         """
         This function parses our user input.
@@ -71,12 +70,11 @@ class query():
         for word in parse_word_token:
             word: str = word.lower()
             if word not in self.STOP_WORDS:
-                word = self.stemmer.stem(word) 
-                
+                word = self.stemmer.stem(word)
                 word_string.append(word)
         return word_string
 
-    def score(self, searched_words): 
+    def score(self, searched_words):
         """
         This function controls the score when pagerank is not included.
 
@@ -88,10 +86,11 @@ class query():
             for word in searched_words:
                 if pageid in self.quer_word_to_rel[word]:
                     word_sum += self.quer_word_to_rel[word][pageid]
-            self.page_values[pageid] = word_sum       
-        self.page_values = dict((self.quer_id_to_titles[key], value) for (key, value) in self.page_values.items())
-        count = 1 
-        for (key, value) in sorted(self.page_values.items(), key=lambda x: x[1], reverse = True):
+            self.page_values[pageid] = word_sum
+        self.page_values = dict((self.quer_id_to_titles[key], value) for (
+            key, value) in self.page_values.items())
+        count = 1
+        for (key, value) in sorted(self.page_values.items(), key=lambda x: x[1], reverse=True):
             if count <= 10:
                 print(key)
                 count += 1
@@ -110,9 +109,10 @@ class query():
                     word_sum += self.quer_word_to_rel[word][pageid]
             word_sum = word_sum ** (1/2)
             self.page_values[pageid] = word_sum * self.quer_pagerank[pageid]
-        self.page_values = dict((self.quer_id_to_titles[key], value) for (key, value) in self.page_values.items())
-        count = 1 
-        for (key, value) in sorted(self.page_values.items(), key=lambda x: x[1], reverse = True):
+        self.page_values = dict((self.quer_id_to_titles[key], value) for (
+            key, value) in self.page_values.items())
+        count = 1
+        for (key, value) in sorted(self.page_values.items(), key=lambda x: x[1], reverse=True):
             if count <= 10:
                 print(key)
                 count += 1
@@ -127,15 +127,15 @@ if __name__ == "__main__":
     """
     try:
         if len(sys.argv) - 1 == 4 and sys.argv[1] == "--pagerank":
-                titles = sys.argv[2] 
-                docs = sys.argv[3] 
-                words = sys.argv[4] 
-                while True:
-                    type_in = input(">> ")
-                    if type_in == ":quit":
-                        break   
-                    runquery = query(True, titles, docs, words, type_in)
-                            
+            titles = sys.argv[2]
+            docs = sys.argv[3]
+            words = sys.argv[4]
+            while True:
+                type_in = input(">> ")
+                if type_in == ":quit":
+                    break
+                runquery = query(True, titles, docs, words, type_in)
+
         elif len(sys.argv) - 1 == 3:
             titles = sys.argv[1]
             docs = sys.argv[2]
@@ -145,10 +145,10 @@ if __name__ == "__main__":
                 if type_in == ":quit":
                     break
                 runquery = query(False, titles, docs, words, type_in)
-                
+
         else:
-            raise AttributeError ("Invalid inputs.") 
-    
+            raise AttributeError("Invalid inputs.")
+
     except(IOError, FileNotFoundError):
         print("Input error.")
         sys.exit

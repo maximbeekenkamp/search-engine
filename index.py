@@ -8,6 +8,7 @@ from nltk.corpus import stopwords
 
 #thisvar = Indexer('/Users/maximbeekenkamp/Desktop/Computer Science/CSCI 200/projects/Search Engine/PageRankExample1.xml', 'titles.xml', 'docs.xml', 'words.xml')
 
+
 class Indexer:
 
     def __init__(self, wiki, titles, docs, words):
@@ -56,41 +57,40 @@ class Indexer:
         """
         wiki_tree = et.parse(wiki)
         wiki_root = wiki_tree.getroot()
-        
 
-        for wiki_page in wiki_root.findall("page"): 
+        for wiki_page in wiki_root.findall("page"):
             page_id: int = int(wiki_page.find("id").text)
-            page_title: str = str(wiki_page.find("title").text.strip()) 
-            page_title = self.stemmer.stem(page_title) 
+            page_title: str = str(wiki_page.find("title").text.strip())
+            page_title = self.stemmer.stem(page_title)
             page_title = page_title.lower()
             self.links[page_id] = []
             self.titles_to_ids[page_title] = page_id
             self.ids_to_titles[page_id] = page_title
-            
+
             wiki_text = wiki_page.find("text").text
-            wiki_page_token = re.findall(self.token_regex, wiki_text + " " + page_title)
-            for word in wiki_page_token: 
+            wiki_page_token = re.findall(
+                self.token_regex, wiki_text + " " + page_title)
+            for word in wiki_page_token:
                 word: str = word.lower()
                 if word not in self.STOP_WORDS:
-                    word = self.stemmer.stem(word) 
-                    
+                    word = self.stemmer.stem(word)
+
                     if self.isLink(word):
                         linktitle, linktext = self.sep_link(word)
                         if linktext != "":
                             for linkword in linktext:
                                 linkword = linkword.lower()
                                 if linkword not in self.STOP_WORDS:
-                                    linkword = self.stemmer.stem(linkword)  
+                                    linkword = self.stemmer.stem(linkword)
                                     self.addfreq(linkword, page_id)
-                        self.links[page_id].append(linktitle)  
+                        self.links[page_id].append(linktitle)
                     else:
                         self.addfreq(word, page_id)
             self.tf(page_id)
         self.n = len(set(self.titles_to_ids))
         self.update_tf()
-        self.pageranking() 
-    
-    
+        self.pageranking()
+
     def isLink(self, word: str):
         """
         This will check if our input string is a link or not.
@@ -102,7 +102,7 @@ class Indexer:
         :return: bool, true or false.
         """
         return (word[0] == "[")
-    
+
     def sep_link(self, word: str) -> tuple[str, str]:
         """
         This will seperate links when they have the | character seperating 
@@ -116,11 +116,12 @@ class Indexer:
         var = word[2: -2]
 
         if "|" in var:
-            link_words = var.split("|") #edge case of nothing before/after verticle bar
+            # edge case of nothing before/after verticle bar
+            link_words = var.split("|")
             linktitle = link_words[0].strip()
             linktitle = linktitle.lower()
             linktitle = self.stemmer.stem(linktitle)
-            linktext = link_words[1] #[[Greek|]]
+            linktext = link_words[1]  # [[Greek|]]
             linktext = re.findall(self.token_regex, linktext)
             return linktitle, linktext
         else:
@@ -130,14 +131,14 @@ class Indexer:
             linktext = var
             linktext = re.findall(self.token_regex, linktext)
             return linktitle, linktext
-    
-    def addfreq(self, word :str, pageid: int):
+
+    def addfreq(self, word: str, pageid: int):
         """
         This will update the frequency of a word in a page as we go along to
         prevent from looping through our xml file excessively. This also 
         handles all unique word portions of search, which are only required
         within the tfidf portion of search.
-        
+
         :param word: the string word we're using as a key in the dictionaries
         :param pageid: the int pageid we're using as a key in the dictionaries
         :return: the dictionary word to page to frequency updated and the 
@@ -152,72 +153,74 @@ class Indexer:
         if pageid not in self.id_to_max:
             self.id_to_max[pageid] = 1
         else:
-            self.id_to_max[pageid] = max(self.id_to_max[pageid], self.word_to_rel[word][pageid])
+            self.id_to_max[pageid] = max(
+                self.id_to_max[pageid], self.word_to_rel[word][pageid])
         if word not in self.word_to_page:
             self.word_to_page[word] = [pageid]
         if pageid not in self.word_to_page[word]:
             self.word_to_page[word].append(pageid)
 
-
     def tf(self, pageid: int):
         """
         This will update the word to pageid to frequency dictionary to a word to
         pageid to term frequency dictionary. 
-        
+
         :param word: the string word we're using as a key in the dictionary
         :param pageid: the int pageid we're using as a key in the dictionary
         :return: the dictionary word to page to term frequency.
         """
         for word in self.word_to_rel:
             if pageid in self.word_to_rel[word]:
-                self.word_to_rel[word][pageid] = self.word_to_rel[word][pageid] / self.id_to_max[pageid]
+                self.word_to_rel[word][pageid] = self.word_to_rel[word][pageid] \
+                    / self.id_to_max[pageid]
 
     def idf(self, word: str):
         """
         This will update the word to page dictionary to a word to
         idf dictionary. 
-        
+
         :param word: the string word we're using as a key in the dictionary
         :return: the dictionary word to idf.
         """
-        self.word_to_page.update({word: log(self.n/len(set(self.word_to_page[word])))})
-    
+        self.word_to_page.update(
+            {word: log(self.n/len(set(self.word_to_page[word])))})
+
     def relevance(self, word: str, pageid: int):
         """
         This will update the word to pageid to  term frequency dictionary to a word to
         pageid to relevance dictionary. 
-        
+
         :param word: the string word we're using as a key in the dictionary
         :param pageid: the int pageid we're using as a key in the dictionary
         :return: the dictionary word to pageid to relevance.
         """
-        self.word_to_rel[word][pageid] = self.word_to_rel[word][pageid] * self.word_to_page[word]
-    
+        self.word_to_rel[word][pageid] = self.word_to_rel[word][pageid] * \
+            self.word_to_page[word]
+
     def update_tf(self):
         """
         This combines the previous three functions allowing us to call just it
         instead of all three functions. 
-        
+
         :return: the dictionary word to pageid to relevance.
         """
         for word in self.word_to_rel:
             self.idf(word)
             for pageid in self.word_to_rel[word]:
-                self.relevance(word, pageid)         
+                self.relevance(word, pageid)
 
     def trimming(self):
         """
         This removes all duplicates, links to outside the corpus, and links to themselves. 
-        
+
         :return: the dictionary pageid to link titles.
-        """        
+        """
         for pageid in self.links:
-            self.links[pageid] = set([title for title in self.links[pageid] \
-                if title in self.titles_to_ids and not(title == self.ids_to_titles[pageid])])
+            self.links[pageid] = set([title for title in self.links[pageid]
+                                      if title in self.titles_to_ids and \
+                                          not(title == self.ids_to_titles[pageid])])
 
-
-    
-    def weight(self): 
+    def weight(self):
         """
         This will precalculate the weights for every page. This also calls trimming so
         that it receives the most uptodate dictionaries.
@@ -225,7 +228,7 @@ class Indexer:
         :return: the dictionary word to title to weight.
         """
         self.trimming()
-        e = 0.15 
+        e = 0.15
         for pageid in self.links:
             self.weights[pageid] = {}
             nk = len(self.links[pageid])
@@ -239,22 +242,22 @@ class Indexer:
                     self.weights[pageid][title] = (e/self.n) + ((1-e)/nk)
                 else:
                     self.weights[pageid][title] = e/self.n
-                 
-    def distance(self) -> float: 
+
+    def distance(self) -> float:
         """
         This will calculate the euclidean distance for rank. 
-        
+
         :return: float value of the euclidean distance for rank.
         """
         var = 0
         for pageids in self.ids_to_titles:
-            var += (self.pagerank_prime[pageids] - self.pagerank[pageids])**2            
+            var += (self.pagerank_prime[pageids] - self.pagerank[pageids])**2
         return ((var)**(1/2))
-    
+
     def pageranking(self):
         """
         This will calculate the final pagerank after convergence. 
-        
+
         :return: the pageid to pagerank dictionary at convergence.
         """
         self.weight()
@@ -268,7 +271,9 @@ class Indexer:
                 self.pagerank_prime[pageid_j] = 0
                 title_j = self.ids_to_titles[pageid_j]
                 for pageid_k in self.ids_to_titles:
-                    self.pagerank_prime[pageid_j] += self.weights[pageid_k][title_j] * self.pagerank[pageid_k]
+                    self.pagerank_prime[pageid_j] += self.weights[pageid_k][title_j] * \
+                        self.pagerank[pageid_k]
+
 
 if __name__ == "__main__":
     """
@@ -286,14 +291,15 @@ if __name__ == "__main__":
     """
     try:
         if len(sys.argv) - 1 != 4:
-            raise AttributeError ("Invalid number of inputs. There must be exactly four inputs.") 
+            raise AttributeError(
+                "Invalid number of inputs. There must be exactly four inputs.")
         wiki = sys.argv[1]
-        titles = sys.argv[2] 
-        docs = sys.argv[3] 
+        titles = sys.argv[2]
+        docs = sys.argv[3]
         words = sys.argv[4]
-        
+
         Indexer(wiki, titles, docs, words)
-    
+
     except(IOError, FileNotFoundError):
         print("Input error.")
         sys.exit
