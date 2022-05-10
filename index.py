@@ -1,15 +1,18 @@
 import xml.etree.ElementTree as et
 import re
 from math import log
-import file_io as io
 import sys
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
+import file_io as io
 
-#thisvar = Indexer('/Users/maximbeekenkamp/Desktop/Computer Science/CSCI 200/projects/Search Engine/PageRankExample1.xml', 'titles.xml', 'docs.xml', 'words.xml')
+# thisvar = Indexer('/Users/maximbeekenkamp/Desktop/Computer Science/CSCI 200/projects/Search Engine/PageRankExample1.xml', 'titles.xml', 'docs.xml', 'words.xml')
 
 
 class Indexer:
+    """
+    This class contains all the indexing functionality for the programme.
+    """
 
     def __init__(self, wiki, titles, docs, words):
         """
@@ -217,8 +220,8 @@ class Indexer:
         """
         for pageid in self.links:
             self.links[pageid] = set([title for title in self.links[pageid]
-                                      if title in self.titles_to_ids and \
-                                          not(title == self.ids_to_titles[pageid])])
+                                      if title in self.titles_to_ids and
+                                      not(title == self.ids_to_titles[pageid])])
 
     def weight(self):
         """
@@ -271,7 +274,8 @@ class Indexer:
                 self.pagerank_prime[pageid_j] = 0
                 title_j = self.ids_to_titles[pageid_j]
                 for pageid_k in self.ids_to_titles:
-                    self.pagerank_prime[pageid_j] += self.weights[pageid_k][title_j] * \
+                    self.pagerank_prime[pageid_j] += \
+                        self.weights[pageid_k][title_j] * \
                         self.pagerank[pageid_k]
 
 
