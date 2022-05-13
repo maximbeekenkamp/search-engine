@@ -1,9 +1,11 @@
-import xml.etree.ElementTree as et
 import re
-from math import log
 import sys
-from nltk.stem import PorterStemmer
+import xml.etree.ElementTree as et
+from math import log
+
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+
 import file_io as io
 
 # thisvar = Indexer('/Users/maximbeekenkamp/Desktop/Computer Science/CSCI 200/projects/Search Engine/PageRankExample1.xml', 'titles.xml', 'docs.xml', 'words.xml')

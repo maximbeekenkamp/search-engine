@@ -1,11 +1,10 @@
-from importlib.util import set_loader
-from operator import contains
-from parso import parse
-import file_io as io
 import re
 import sys
-from nltk.stem import PorterStemmer
+
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+
+import file_io as io
 
 
 class query():

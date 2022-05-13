@@ -1,6 +1,7 @@
+import pytest
+
 import index
 import query
-import pytest
 
 # this tests the functions within tf idf
 
